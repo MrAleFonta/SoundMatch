@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collab</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+
+    <!--Semplice sovrascrittura inutile-->
+    <style>
+        p{
+            display: inline-block;
+            margin: 5px;
+        }
+    </style>
+
+</head>
+<body>
+
+    <h2>Lista artisti</h2>
+    <ul id="lista_artisti"></ul>
+
+    <hr>
+
+    <h2>Lista richieste collaborazioni ricevute</h2>
+    <ul id="lista_collab_request_ricevute"></ul>
+
+    <hr>
+    <h2>Lista richieste collaborazioni inviate</h2>
+    <ul id="lista_collab_request_inviate"></ul>
+
+    <hr>
+
+    <h2>Lista collaborazioni avviate</h2>
+    <ul id="lista_collab"></ul>
+
+    <hr>
+
+    <h2>Lista collaborazioni rifiutate</h2>
+    <ul id="lista_collab_rejected"></ul>
+    
+    <script>
+
+        /** 
+         * prendo tutti gli artisti
+        **/
+        var token = localStorage.getItem("token");
+        console.log(token)
+
+        $.ajax({
+            type: "GET",
+            url: "api/search/artists",
+            data: {token: token},
+            crossDomain: true,
+            success: function(data){
+                console.log(data);
+                data.artists.forEach(element => {
+                    $('#lista_artisti').append(`<li><p>${element.nome_utente}</p> <a href="javascript:sendRequest('${element._id}')">Invia richiesta</a></li>`);
+                });
+            }
+        });
+
+    
+
+        /**
+         * Prendo le richieste di collaborazione ricevute
+        **/
+
+        $.ajax({
+            type: "GET",
+            url: "api/collab/status/SENT?from_me=false",
+            data: {token: token},
+            crossDomain: true,
+            success: function(data){
+                console.log(data);
+                data.collabs.forEach(element => {
+                    $('#lista_collab_request_ricevute').append(`<li><p>${element.nome_utente}</p> <a href="javascript:accettaRichiesta('${element._id}')">Accetta richiesta</a> <a href="javascript:rifiutaRichiesta('${element._id}')">Rifiuta richiesta</a></li>`);
+                });
+            }
+        });
+        
+
+        /**
+         * Lista richieste collaborazioni inviate
+         */
+
+        $.ajax({
+            type: "GET",
+            url: "api/collab/status/SENT?from_me=true",
+            data: {token: token},
+            crossDomain: true,
+            success: function(data){
+                console.log(data);
+                data.collabs.forEach(element => {
+                    $('#lista_collab_request_inviate').append(`<li><p>${element.nome_utente}</p> <a href="javascript:eliminaRichiesta('${element._id}')">Elimina richiesta</a></li>`);
+                });
+            }
+        });
+
+        /**
+         * Lista richieste collaborazioni attive
+         */
+
+        $.ajax({
+            type: "GET",
+            url: "api/collab/status/ACCEPTED",
+            data: {token: token},
+            crossDomain: true,
+            success: function(data){
+                console.log(data);
+                data.collabs.forEach(element => {
+                    $('#lista_collab').append(`<li><p>${element.nome_utente}</p><a href="collab_chat.html?collab=${element._id}">Chat</a></li>`);
+                });
+            }
+        });
+
+        /**
+         * 
+         * FUNCTIONS
+         * 
+         */
+
+        // function to send collab request
+        function sendRequest(user_id){
+            sendAjax("api/collab/user_id/" + user_id, "GET");
+        }
+
+        // accetta rischieste di collaborazione
+        function accettaRichiesta(collab_id){
+            sendAjax("api/collab/collab_id/" + collab_id, "GET");
+        }
+
+        // rifiuta richiesta
+        function rifiutaRichiesta(collab_id){
+            sendAjax("api/collab/collab_id/" + collab_id, "DELETE");
+        }
+
+        // elimina richiesta
+        function eliminaRichiesta(collab_id){
+
+            sendAjax("api/collab/collab_id/" + collab_id + "?from_me=true", "DELETE");
+        }
+
+        function sendAjax(link, method){
+            var token = localStorage.getItem("token");
+            console.log(token);
+            $.ajax({
+                type: method,
+                url: link,
+                data: {token: token},
+                crossDomain: true,
+                headers:{
+                    "x-access-token": token
+                },
+                success: function(data){
+                    console.log(data);
+                }
+            });
+        }
+
+    </script>
+
+</body>
+</html>

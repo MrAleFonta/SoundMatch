@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+  <script src="js/socket.io.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <br>
+    <div class="jumbotron">
+        <h1 class="display-4">Chat globale</h1>
+        <br>
+        <textarea id = "message" class="form-control" placeholder="Scrivi un messaggio"></textarea>
+        <br>
+        <button id="send" class="btn btn-success">Invia</button>
+        <br>
+        <br>
+        <button id="delete" class="btn btn-success">Elimina i miei messaggi</button>
+        <br>
+        <br>
+        <textarea id="user" class="form-control" placeholder="Visualizza tutti i messaggi di un utente"></textarea>
+        <button id="search" class="btn btn-success">Cerca</button>
+        <br>
+        <br>
+        <p class="message">Login <a href="login.html" style="color: #54BEB8;">Fai il login</a></p>
+    </div>
+    <div>
+      <ul id="messages">
+
+      </ul>
+
+      <hr>
+
+      <ul id="searchedmessages">
+
+      </ul>
+
+      <p></p>
+    </div>
+</div>
+<script>
+   var socket = io();
+    $(() => {
+        $("#send").click(()=>{
+            sendMessage({message: $("#message").val()});
+        })
+        $("#delete").click(()=>{
+          const element = document.getElementById('messages');
+          deleteMessages()
+          element.innerHTML = '';
+        })
+        $("#search").click(() => {
+          var user = $("#user").val();
+          searchUser(user);
+        })
+        $(document).on("click", ".remove-me", function(e){
+          // saving message id and name of the sender in order to compare that with the logged-in user
+          var message_id = $(this).attr('id');
+          var nome_utente = $(this).parent().text().split(' ')[0] 
+          
+          const element = document.getElementById('messages');
+          deleteSpecificMessage(message_id, nome_utente)
+          // removing element from the list
+          $(this).parent().remove();
+          element.innerHTML = '';
+          getMessages()
+        });
+        getMessages()
+    })
+
+    socket.on('message', addMessages)
+
+    function searchUser(user) {
+      $.ajax({
+        url: 'api/chat/chat_id/2/' + user,
+        type: 'GET',
+        
+        data: {
+          token: localStorage.getItem("token")
+        },
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function(data) {
+          data.forEach(addSearchedMessages);
+        }
+      })
+    }
+
+    function addSearchedMessages(message){
+      $("#searchedmessages").append(`<li id="${message._id}">${message.nome_utente}  ${message.message}<button id="${message._id}" type='button' class="remove-me">D</button> </li>`)
+    }
+
+    function addMessages(message){
+      $("#messages").append(`<li id="${message._id}">${message.nome_utente}  ${message.message}<button id="${message._id}" type='button' class="remove-me">D</button> </li>`)
+    }
+
+    function getMessages(){
+      $.ajax({
+          url: 'api/chat/chat_id/2',
+          type: 'GET',
+          
+          data: {
+            token: localStorage.getItem("token")
+          },
+          success: function(data) {
+            data.forEach(addMessages);
+          }
+      });
+    }
+
+    // delete all messages
+    function deleteMessages() {
+      $.ajax({
+          url: 'api/chat/chat_id/2',
+          type: 'DELETE',
+          
+          data: {
+            token: localStorage.getItem("token")
+          },
+          success: function(data) {
+          }
+      });
+    }
+
+    // delete specific message
+    function deleteSpecificMessage(message_id, nome_utente) {
+      $.ajax({
+          url: 'api/chat/message_id/' + message_id,
+          type: 'DELETE',
+          
+          data: {
+            token: localStorage.getItem("token")
+          },
+          success: function(data) {
+          }
+      });
+    }
+    function sendMessage(message){
+      $.ajax({
+          url: 'api/chat/chat_id/2',
+          type: 'POST',
+          
+          data: {
+            token: localStorage.getItem('token'),
+            message: message.message
+          },
+          success: function(data) {
+            $("#messages").append(`<li id="${message._id}">${data}  ${message.message}<button id="${message._id}" type='button' class="remove-me">D</button> </li>`)
+          }
+      });
+    }
+</script>
+</body>
+</html>

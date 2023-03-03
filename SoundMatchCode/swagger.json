@@ -1,0 +1,1166 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "My User Project CRUD",
+    "description": "My User Project Application API",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Users",
+      "description": "API for users in the system"
+    }
+  ],
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/api/auth/login": { 
+        "post": { 
+            "tags": [ 
+                "Users"
+            ],
+            "summary": "Login",
+            "parameters": [{
+              "in": "body",
+              "name": "Login",
+              "description": "User Login",
+              "required": true,
+              "schema": {
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                    "email": { 
+                        "type": "string",
+                        "required": true
+                    },
+                    "password": { 
+                        "type": "string",
+                        "required": true
+                    }
+                }
+              }
+            }],
+            "responses": {
+                "200": {
+                    "description": "Token Generated",
+                    "schema": {
+                        "$ref": "#/definitions/Token"
+                    }
+                },
+                "400": {
+                  "description": "",
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "description": "Possibili errori",
+                        "enum": [
+                          "Error, give all the information",
+                          "Wrong password",
+                          "Error"
+                        ]
+                      }
+                    }
+                  }
+                }
+            }
+        }
+    },
+    "/api/auth/registration": { 
+        "post": { 
+            "tags": [ 
+                "Users"
+            ],
+            "summary": "Registration",
+            "parameters": [{
+              "in": "body",
+              "name": "Registration",
+              "description": "User Registration",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/Users"
+              }
+            }],
+            "responses": {
+                "200": {
+                    "description": "Success, user saved",
+                    "schema": {
+                        "$ref": "#/definitions/Token"
+                    }
+                },
+                "400": {
+                  "description": "Error, user not saved"
+                }
+            }
+        }
+    },
+  "/api/collab/user_id/{user_id}": {
+        "post": {
+          "tags": [
+            "Collaboration"
+          ],
+          "summary": "Send collaboration request",
+          "parameters": [{
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "body",
+            "name": "loggedUser",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Token"
+            }
+          }],
+          "responses": {
+              "200": {
+                "description": "Collab request created"
+              },
+              "400": {
+                "description": "",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Possibili errori",
+                      "enum": [
+                        "Devi essere un artista per avviare una collaborazione",
+                        "Errore, qualcosa è andato storto"
+                      ]
+                    }
+                  }
+                }
+              }
+          }
+        }
+  },
+"/api/collab/collab_id/{collab_id}": {
+  "get": {
+    "tags": [
+      "Collaboration"
+    ],
+    "summary": "Accept collaboration request",
+    "parameters": [{
+      "in": "path",
+      "name": "collab_id",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    }],
+    "responses": {
+        "200": {
+          "description": "Collaborazione accettata"
+        },
+        "400": {
+          "description": "Errore nell'accettare la richiesta di collaborazione"
+        }
+    }
+  },
+  "delete": {
+    "tags": [
+      "Collaboration"
+    ],
+    "summary": "Decline collaboration request",
+    "parameters": [{
+      "in": "path",
+      "name": "collab_id",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    },
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    }],
+    "responses": {
+        "200": {
+          "description": "Collaborazione rifiutata"
+        },
+        "400": {
+          "description": "Errore nel rifiutare la richiesta di collaborazione"
+        }
+    }
+  }
+},
+"/api/collab": {
+  "get": {
+    "tags": [
+      "Collaboration"
+    ],
+    "summary": "Get all collabs of the logged user",
+    "parameters": [
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    }],
+    "responses": {
+        "200": {
+          "description": "Lista delle collaborazioni",
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Collab"
+            }
+          }
+        },
+        "400": {
+          "description": "Errore nel cercare le tue richieste"
+        }
+    }
+  }
+},
+"/api/collab_chat/collab_id/{collab_id}": {
+  "post": {
+    "tags": [
+      "CollabChat"
+    ],
+    "summary": "Send a message",
+    "parameters": [
+      {
+        "in": "path",
+        "name": "collab_id",
+        "description": "Collab id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+      "in": "body",
+      "name": "text",
+      "description": "Message sent from user",
+      "required": true,
+      "schema": {
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "required": true
+          }
+        }
+      }
+    },
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    }
+    ],
+  "responses": {
+    "200": {
+        "description": "Messaggio inviato",
+        "schema": {
+            "$ref": "#/definitions/Message"
+        }
+    },
+    "400": {
+      "description": "",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Possibili errori",
+            "enum": [
+              "Messaggio non inviato",
+              "Stato della collaborazione non ACCEPTED",
+              "Non puoi inviare messaggi in questa collaborazione",
+              "Errore nel trovare la collaborazione",
+              "Testo vuoto"
+            ]
+          }
+        }
+      }
+    }
+   }
+  },
+  "get": {
+    "tags": [
+      "CollabChat"
+    ],
+    "summary": "Get all messages from a collaboration",
+    "parameters": [
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    },
+    {
+      "in": "path",
+      "name": "collab_id",
+      "description": "Collab id",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }],
+  "responses": {
+    "200": {
+        "description": "List of messages from a collaboration chat",
+        "schema": {
+          "type": "array",
+            "items": {
+              "$ref": "#/definitions/CollabChat"
+            } 
+        }
+    },
+    "400": {
+      "description": "",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Possibili errori",
+            "enum": [
+              "Qualcosa è andato storto",
+              "Non puoi ottenere i messaggi di questa chat"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+},
+"/api/collab_chat/collab_id/{collab_id}/set_status/read": {
+  "post": {
+    "tags": [
+      "CollabChat"
+    ],
+    "summary": "Set all messages from a collaboration as read",
+    "parameters": [
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    },
+    {
+      "in": "path",
+      "name": "collab_id",
+      "description": "Collab id",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }],
+  "responses": {
+    "200": {
+        "description": "Messaggi impostati come letti"
+    },
+    "400": {
+      "description": "Non è stato possibile impostare come letti i tuoi messaggi"
+    }
+  }
+}
+},
+"/api/collab_chat/collab_id/{collab_id}/set_status/sent": {
+  "get": {
+    "tags": [
+      "CollabChat"
+    ],
+    "summary": "Get all unread messages from a collaboration",
+    "parameters": [
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    },
+    {
+      "in": "path",
+      "name": "collab_id",
+      "description": "Collab id",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }],
+  "responses": {
+    "200": {
+        "description": "Messaggi impostati come letti",
+        "schema": {
+          "type": "array",
+            "items": {
+              "$ref": "#/definitions/CollabChat"
+            } 
+        }
+    },
+    "400": {
+      "description": "",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Possibili errori",
+            "enum": [
+              "Qualcosa è andato storto",
+              "Non puoi ottenere i messaggi di questa chat"
+            ]
+          }
+        }
+      }
+  }
+}
+}
+},
+"/api/collab_chat/message_id/{message_id}": {
+  "delete": {
+    "tags": [
+      "CollabChat"
+    ],
+    "summary": "Delete a message",
+    "parameters": [
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    },
+    {
+      "in": "path",
+      "name": "message_id",
+      "description": "Message id",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Message"
+      }
+    }],
+  "responses": {
+    "200": {
+        "description": "Messaggio eliminato"
+    },
+    "400": {
+      "description": "Errore nell'eliminare il messaggio"
+    }
+  }
+}
+},
+"/api/song": {
+  "get": {
+    "tags": [
+      "Chat"
+    ],
+    "summary": "Print all songs",
+  "responses": {
+    "200": {
+        "description": "Vengono mostati tutti i brani",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Song"
+          }
+        }
+    }
+  }
+},
+"post": {
+  "tags": [
+    "Chat"
+  ],
+  "summary": "Upload a song",
+  "parameters": [
+    {
+      "in": "body",
+      "name": "song",
+      "description": "Song that is going to be uploaded",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Song"
+      }
+    },
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    }
+  ],
+"responses": {
+  "200": {
+      "description": "Success, song saved"
+  },
+  "400": {
+    "description": "Error, song not saved"
+  }
+}
+},
+"delete": {
+  "tags": [
+    "Chat"
+  ],
+  "summary": "Delete all songs of an artist",
+  "parameters": [
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    }
+  ],
+"responses": {
+  "200": {
+      "description": "All songs deleted"
+  },
+  "400": {
+    "description": "Error deleting all songs"
+  },
+  "403": {
+    "description": "Not Authorized"
+  }
+}
+}
+},
+"/api/song/song_id/{song_id}": {
+  "get": {
+    "tags": [
+      "Chat"
+    ],
+    "summary": "Show a specific song",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "loggedUser",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Token"
+        }
+      },
+      {
+        "in": "path",
+        "name": "song_id",
+        "description": "Song id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+  "responses": {
+    "200": {
+        "schema": {
+          "$ref": "#/definitions/Song"
+        }
+    },
+    "400": {
+      "description": "Song not found, is the id correct?"
+    }
+  }
+},
+"delete": {
+  "tags": [
+    "Chat"
+  ],
+  "summary": "Delete a specific song",
+  "parameters": [
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    },
+    {
+      "in": "path",
+      "name": "song_id",
+      "description": "Song id",
+      "required": true,
+      "schema": {
+        "type": "string"
+      }
+    }
+  ],
+"responses": {
+  "200": {
+      "description": "Song deleted"
+  },
+  "400": {
+    "description": "",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "description": "Possibili errori",
+          "enum": [
+            "Song not found, is the id correct?",
+            "Uncatched error"
+          ]
+        }
+      }
+    }
+  },
+  "403": {
+    "description": "Not Authorized"
+  }
+}
+}
+},
+"/api/song/modify": {
+  "post": {
+    "tags": [
+      "Chat"
+    ],
+    "summary": "Delete a specific song",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "loggedUser",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Token"
+        }
+      },
+      {
+        "in": "body",
+        "name": "song",
+        "description": "Song",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Song"
+        }
+      }
+    ],
+  "responses": {
+    "200": {
+        "description": "Song modified"
+    },
+    "400": {
+      "description": "",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Possibili errori",
+            "enum": [
+              "Song not found, is the id correct?",
+              "Uncatched error"
+            ]
+          }
+        }
+      }
+    },
+    "403": {
+      "description": "Not Authorized"
+    }
+  }
+}
+},
+"/api/search/artists": {
+  "get": {
+    "tags": [
+      "Search"
+    ],
+    "summary": "Get a list of all the artists",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "loggedUser",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Token"
+        }
+      }],
+  "responses": {
+    "200": {
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Artist"
+        }
+      }
+    },
+    "400": {
+      "description": "Errore"
+    }
+  }
+}
+},
+"/api/chat/chat_id/{chat_id}": {
+  "post": {
+    "tags": [
+      "Chat"
+    ],
+    "summary": "Creating a new message",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "loggedUser",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Token"
+        }
+      },
+      {
+        "in": "path",
+        "name": "chat_id",
+        "description": "Chat id",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "in": "body",
+        "name": "message",
+        "description": "Messaggio che si vuole inviare",
+        "schema": {
+          "type": "string"
+        }
+      }],
+  "responses": {
+    "200": {
+      "description": "OK"
+    },
+    "400": {
+      "description": "error nome_utente null"
+    },
+    "500": {
+      "description": "Error"
+    }
+  }
+},
+  "get": {
+    "tags": [
+      "Chat"
+    ],
+    "summary": "Get all messages from a community",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "loggedUser",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Token"
+        }
+      },
+      {
+        "in": "path",
+        "name": "chat_id",
+        "description": "Chat id",
+        "schema": {
+          "type": "string"
+        }
+      }],
+  "responses": {
+    "200": {
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Message"
+        }
+      }
+    }
+  }
+},
+"delete": {
+  "tags": [
+    "Chat"
+  ],
+  "summary": "Delete all messages from a user in a community",
+  "parameters": [
+    {
+      "in": "body",
+      "name": "loggedUser",
+      "required": true,
+      "schema": {
+        "$ref": "#/definitions/Token"
+      }
+    },
+    {
+      "in": "path",
+      "name": "chat_id",
+      "description": "Chat id",
+      "schema": {
+        "type": "string"
+      }
+    }],
+"responses": {
+  "200": {
+    "description": "OK"
+  },
+  "500": {
+    "description": "Error"
+  }
+}
+}
+},
+"/api/chat/chat_id/{chat_id}/{nome_utente}": {
+  "get": {
+    "tags": [
+      "Chat"
+    ],
+    "summary": "Get all messages from a user in a community",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "loggedUser",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Token"
+        }
+      },
+      {
+        "in": "path",
+        "name": "chat_id",
+        "description": "Chat id",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "in": "path",
+        "name": "nome_utente",
+        "description": "Nome utente",
+        "schema": {
+          "type": "string"
+        }
+      }],
+  "responses": {
+    "200": {
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Message"
+        }
+      }
+    }
+  }
+}
+},
+"/api/chat/message_id/{message_id}": {
+  "delete": {
+    "tags": [
+      "Chat"
+    ],
+    "summary": "Delete a specific message",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "loggedUser",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Token"
+        }
+      },
+      {
+        "in": "path",
+        "name": "message_id",
+        "description": "Message id",
+        "schema": {
+          "type": "string"
+        }
+      }],
+  "responses": {
+    "200": {
+      "description": "eliminato"
+    }
+  }
+}
+},
+"/api/genre": {
+  "get": {
+    "tags": [
+      "Genre"
+    ],
+    "summary": "Get all genres",
+    "responses": {
+      "200": {
+        "description": "OK",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Genre"
+          }
+        }
+      },
+      "400": {
+        "description": "Qualcosa è andato storto, non siamo riusciti a recuperare i generi"
+      }
+    }
+  },
+  "post": {
+    "tags": [
+      "Genre"
+    ],
+    "summary": "Save user's favourite genres",
+    "parameters": [
+      {
+        "in": "body",
+        "name": "loggedUser",
+        "required": true,
+        "schema": {
+          "$ref": "#/definitions/Token"
+        }
+      },
+      {
+        "in": "body",
+        "name": "genres",
+        "description": "Message id",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Genre"
+          }
+        }
+      }],
+      "responses": {
+        "200": {
+          "description": "OK",
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Genre"
+            }
+          }
+        },
+        "400": {
+          "description": "Errore, non simao riusciti a impostare le tue preferenze"
+        }
+      }
+  }
+}
+},
+"definitions": { 
+    "Users": {
+        "required": [
+            "nome_utente",
+            "email",
+            "password_hash",
+            "is_artista"
+        ],
+        "properties": {
+            "nome_utente": { 
+                "type": "string",
+                "required": true
+            },
+            "email": { 
+                "type": "string",
+                "required": true
+            },
+            "password_hash": { 
+                "type": "string",
+                "required": true
+            },
+            "is_artista": { 
+                "type": "boolean",
+                "default": false
+            }
+        }
+    },
+    "Artist": {
+      "required": [
+          "nome_utente",
+          "email",
+          "password_hash",
+          "is_artista"
+      ],
+      "properties": {
+          "nome_utente": { 
+              "type": "string",
+              "required": true
+          },
+          "email": { 
+              "type": "string",
+              "required": true
+          },
+          "password_hash": { 
+              "type": "string",
+              "required": true
+          },
+          "is_artista": { 
+              "type": "boolean",
+              "default": true
+          }
+      }
+  },
+    "Token": {
+      "required": [
+            "token"
+        ],
+        "properties": {
+            "token": { 
+                "type": "string"
+            }
+        }
+    },
+    "CollabChat": {
+      "required": [
+        "from",
+        "collab",
+        "text",
+        "datetime",
+        "status"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "#/definitions/Artist"
+        },
+        "collab": {
+          "$ref": "#/definitions/Collab"
+        },
+        "text": {
+          "type": "string"
+        },
+        "datetime": {
+
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "Collab": {
+      "required": [
+        "from",
+        "to",
+        "status"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "#/definitions/Artist"
+        },
+        "to": {
+          "$ref": "#/definitions/Artist"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "Chat": {
+      "required": [
+        "nome_utente",
+        "id_utente",
+        "message",
+        "community_id"
+      ],
+      "properties": {
+        "nome_utente": {
+          "type": "string"
+        },
+        "id_utente": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "community_id": {
+          "type": "string"
+        }
+      }
+    },
+    "Genre": {
+      "required": [
+        "genre",
+        "img"
+      ],
+      "properties": {
+        "genre": {
+          "type": "string"
+        },
+        "img": {
+          "type": "string"
+        }
+      }
+    },
+    "Song": {
+      "required": [
+        "title",
+        "artist",
+        "collaborations",
+        "genres",
+        "image"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "artist": {
+          "$ref": "#/definitions/Artist"
+        },
+        "collaborations": {
+          "type": {
+            "array": {
+              "$ref": "#/definitions/Artist"
+            }
+          }
+        },
+        "genres": {
+          "type": {
+            "array": {
+              "$ref": "#/definitions/Genre"
+            }
+          }
+        },
+        "image": {
+          "type": "string"
+        }
+      }
+    },
+    "Message": {
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
+    }
+}
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <h2 id="nome_utente"></h2>
+    <div style="width: 400px" id="messages_container"></div>
+    <div><input id="text_input" type="text"><input onclick="sendMessage()" type="submit"></div>
+    
+
+    <script>
+        
+        var token = localStorage.getItem("token");
+
+        const queryString = window.location.search;
+        const parameters = new URLSearchParams(queryString);
+        const collab_id = parameters.get('collab');
+        var my_id;
+
+        // prendo il nome della chat
+        $.ajax({
+            type: "GET",
+            url: "api/collab_chat/collab_id/" + collab_id + "/name",
+            data: {token: token},
+            crossDomain: true,
+            success: function(data){
+                console.log(data);
+                $('#nome_utente').text(data.nome_utente);
+                
+            }
+        });
+
+
+        // prendo tutti i messaggi della chat e li stampo
+        function getMessages(){
+            $.ajax({
+                type: "GET",
+                url: "api/collab_chat/collab_id/" + collab_id,
+                data: {token: token},
+                crossDomain: true,
+                success: function(data){
+                    console.log(data);
+                    my_id = data.my_id;
+                    $('#messages_container').html("");
+                    data.messagges.forEach(message => {
+                        printMessage(message);
+                    });                
+                }
+            });
+        }
+
+        getMessages;
+        setInterval(getMessages, 2000);
+
+        
+
+        // funzione per stampare i messaggi
+        function printMessage(message){
+            let color = message.from == my_id ? "green" : "red";
+            var template = `<p style="padding: 10px; 
+            background: ${color}; 
+            max-width: 200px; 
+            display: inline-block;
+            margin: 5px;">${message.text}</p>`
+            $('#messages_container').append(template).append("<br>");
+        }
+
+        // mando messaggio
+        function sendMessage(){
+
+            let text = $('#text_input').val();
+            if (text === null || text.trim() === "")
+                return;
+
+            var to_send = JSON.stringify({"text": text})
+            console.log(to_send);
+
+            $.ajax({
+                type: "POST",
+                url: "api/collab_chat/collab_id/" + collab_id,
+                dataType: 'json',
+                contentType: 'application/json',
+                headers: {
+                    "x-access-token": token
+                },
+                data: JSON.stringify({"text": text}),
+                crossDomain: true,
+                success: function(data){
+                    console.log(data);
+                    if (data.success == true){
+                        printMessage(data.message);
+                        $('#text_input').val("")
+                    }
+                }
+            });
+        }
+
+        
+        
+
+    </script>
+
+</body>
+</html>
